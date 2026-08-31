@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Experiment outputs
+mlruns/
+outputs/
+snapshots/
+memory_timeline/
+*.log
+nohup.out
+
+# Model weights & large artifacts (fetch from HF Hub instead)
+*.pth
+*.pt
+*.ckpt
+models/checkpoints/
+models/pretrained/
+# ...except the small decoder weights shipped inside the package
+!latex_ocr/models/pretrained/*.pth
+# Dataset caches / downloaded data
+datasets/UniMER_Dataset/
+datasets/synth/
+datasets/formula_corpus.txt
+data/synth/*.npy
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# uv / ruff
+.ruff_cache/
