@@ -20,5 +20,5 @@ repos:
         entry: .githooks/check-large-files 10
         language: script
         pass_filenames: false
-        stages: [pre-commit]
+        stages: [commit]
         always_run: true
