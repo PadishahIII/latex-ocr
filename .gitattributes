@@ -1,0 +1,5 @@
+datasets/formula_corpora/pix2tex_train_sanitized.json filter=lfs diff=lfs merge=lfs -text
+datasets/formula_corpora/pix2tex_val_sanitized.json filter=lfs diff=lfs merge=lfs -text
+datasets/formula_corpora/unimer_test_sanitized.json filter=lfs diff=lfs merge=lfs -text
+datasets/formula_corpora/unimer_train_sanitized.json filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
