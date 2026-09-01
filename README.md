@@ -259,6 +259,7 @@ Interactive docs: `http://localhost:8000/docs`.
 
 <img width="1354" height="365" alt="image" src="https://github.com/user-attachments/assets/c4707b15-fef9-4245-b6dc-ae9b7d003503" />
 
+<img width="1873" height="373" alt="image" src="https://github.com/user-attachments/assets/afbd7156-c219-418f-b7ad-4a4626895676" />
 
 
 
