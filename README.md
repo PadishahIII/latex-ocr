@@ -253,18 +253,14 @@ curl http://localhost:8000/health
 Interactive docs: `http://localhost:8000/docs`.
 
 ## Showcase
+<img width="1345" height="329" alt="image" src="https://github.com/user-attachments/assets/086344d5-45d3-4a71-8368-583d941ece64" />
 
-<!-- TODO: drop screenshots into docs/images/ and they will render here. -->
+<img width="1357" height="302" alt="image" src="https://github.com/user-attachments/assets/d2fd4240-3c2c-4a0d-b936-ff67aad4b98c" />
 
-![Pipeline demo: formula image in, LaTeX out](docs/images/demo-pipeline.png)
+<img width="1354" height="365" alt="image" src="https://github.com/user-attachments/assets/c4707b15-fef9-4245-b6dc-ae9b7d003503" />
 
-<!-- TODO: screenshot of the FastAPI /docs interactive page -->
 
-![FastAPI interactive docs](docs/images/demo-api-docs.png)
 
-<!-- TODO: side-by-side of a styled formula (\mathbb / \mathcal / \mathfrak) and the recognized output -->
-
-![Styled-font recognition example](docs/images/demo-styled.png)
 
 ## Training
 
@@ -286,7 +282,6 @@ Optional prefetch:
 
 ```bash
 hf download PadishahIIIXXX/latex-ocr-dataset --repo-type=dataset
-hf download wanderkid/UniMER_Dataset --repo-type=dataset
 ```
 
 The `datasets/` directory in this repo only carries small metadata (formula corpora
