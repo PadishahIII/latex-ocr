@@ -1,0 +1,24 @@
+# Pre-commit hooks for latex-ocr
+# Install:   uv tool install pre-commit && pre-commit install
+# Run all:   pre-commit run --all-files
+# Update:    pre-commit autoupdate
+repos:
+  # Secrets / credential scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+        name: gitleaks (secret scanner)
+
+  # Large-file detector: block accidental commits of model weights / datasets.
+  # Binary artifacts (checkpoints, renders, corpora) belong on Hugging Face Hub
+  # or an artifact store, not in git.
+  - repo: local
+    hooks:
+      - id: no-large-files
+        name: large file detector (> 10 MB)
+        entry: .githooks/check-large-files 10
+        language: script
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true

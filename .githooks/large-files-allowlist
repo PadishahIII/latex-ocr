@@ -1,0 +1,7 @@
+# gitignore-style patterns exempt from the large-file detector.
+# Keep this list short: anything here bypasses the >10 MB guard, in pre-commit
+# and CI alike. Prefer storing big artifacts on Hugging Face Hub.
+#
+# Pre-existing formula corpora committed before the guard was introduced
+# (candidates for migration to the HF dataset repo):
+datasets/formula_corpora/*

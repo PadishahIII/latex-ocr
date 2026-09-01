@@ -43,3 +43,4 @@ data/synth/*.npy
 
 # uv / ruff
 .ruff_cache/
+models/1c0eb12acf40406d91a642624354fe96-latex-ocr-coca-finetune_epoch00032_final/pickle_module_info.txt

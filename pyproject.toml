@@ -1,7 +1,7 @@
 [project]
 name = "latex-ocr"
-version = "0.1.0"
-description = "Standalone LaTeX formula OCR: training recipes (CoCa/Swin, Xception+GRU) and an OpenAI-friendly inference API server"
+version = "1.0.0"
+description = "Standalone LaTeX formula OCR: CoCa model, training recipes, Gradio web UI, and a FastAPI inference API server"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -35,9 +35,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Inference API server (fastapi-based). Install with: uv sync --extra server
+# Inference servers (Gradio web UI + FastAPI API). Install with: uv sync --extra server
 server = [
     "fastapi>=0.115.0",
+    "gradio>=5.9.1",
     "uvicorn[standard]>=0.30.0",
     "python-multipart>=0.0.9",
 ]
@@ -47,6 +48,7 @@ render = [
 ]
 
 [project.scripts]
+latex-ocr = "latex_ocr.cli:main"
 latex-ocr-server = "latex_ocr.serve:main"
 
 [tool.uv]

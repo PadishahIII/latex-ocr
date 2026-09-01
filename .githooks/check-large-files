@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Large-file detector for pre-commit and CI.
+# Usage: check-large-files [threshold-mb]
+#
+# Fails (non-zero) if any scanned file exceeds the threshold (default 10 MB).
+# Scans staged files during normal commits, or all tracked files when the
+# index is clean (e.g. `pre-commit run --all-files` / CI).
+#
+# Paths matching patterns in .githooks/large-files-allowlist (one per line,
+# gitignore-style) are exempt — use for intentional, pre-existing exceptions.
+set -euo pipefail
+
+THRESHOLD_MB="${1:-10}"
+THRESHOLD_BYTES=$((THRESHOLD_MB * 1024 * 1024))
+ALLOWLIST="$(dirname "$0")/large-files-allowlist"
+
+# Staged files (A=added, M=modified, R/C/T=copied/renamed/type-changed),
+# falling back to all tracked files for `pre-commit run --all-files` / CI.
+if git diff --cached --quiet 2>/dev/null; then
+    files=$(git ls-files)
+else
+    files=$(git diff --cached --name-only --diff-filter=ACMRT)
+fi
+
+is_allowed() {
+    [ -f "$ALLOWLIST" ] || return 1
+    local pattern
+    while IFS= read -r pattern; do
+        [[ "$pattern" =~ ^#.*$ || -z "$pattern" ]] && continue
+        # shellcheck disable=SC2254  # intentional glob split
+        case "$1" in
+            $pattern) return 0 ;;
+        esac
+    done <"$ALLOWLIST"
+    return 1
+}
+
+status=0
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    [ -f "$file" ] || continue
+    is_allowed "$file" && continue
+    size=$(wc -c <"$file" | tr -d ' ')
+    if [ "$size" -gt "$THRESHOLD_BYTES" ]; then
+        printf 'large file: %s (%s > %s MB)\n' \
+            "$file" "$(numfmt --to=iec "$size" 2>/dev/null || echo "${size}B")" "$THRESHOLD_MB"
+        status=1
+    fi
+done <<EOF
+$files
+EOF
+
+if [ "$status" -ne 0 ]; then
+    cat >&2 <<'MSG'
+
+Large files detected. Model weights, dataset archives and renders should live on
+Hugging Face Hub (or an artifact store), not in git. Genuinely intentional
+exceptions can be listed in .githooks/large-files-allowlist; otherwise bypass
+with `git commit --no-verify` and say why in the message.
+MSG
+fi
+exit "$status"

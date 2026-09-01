@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: Gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # gitleaks scans full history
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Fails on any detected secret. GITLEAKS_LICENSE is only required for
+        # orgs; personal repos run free.
+
+  large-files:
+    name: Large file detector (> 10 MB)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Check for large files
+        run: |
+          chmod +x .githooks/check-large-files
+          # Index is clean after checkout -> the script scans all tracked files.
+          .githooks/check-large-files 10
