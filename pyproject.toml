@@ -32,13 +32,16 @@ dependencies = [
     "tqdm>=4.67.1",
     "transformers>=4.56.2",
     "typing-extensions>=4.15.0",
+    "torchao<0.15",
 ]
 
 [project.optional-dependencies]
 # Inference servers (Gradio web UI + FastAPI API). Install with: uv sync --extra server
 server = [
     "fastapi>=0.115.0",
-    "gradio>=5.9.1",
+    # 6.x required: gr.Latex was removed in Gradio 6; rendering goes through
+    # gr.Markdown (KaTeX, $$...$$ delimiters). webui.py targets the 6.x API.
+    "gradio>=6,<7",
     "uvicorn[standard]>=0.30.0",
     "python-multipart>=0.0.9",
 ]
@@ -47,26 +50,65 @@ render = [
     "streamlit>=1.40.0",
 ]
 
+# PyTorch wheels built for CUDA 12.6 — needed for GPUs with compute capability
+# <= 7.0 (Maxwell/Pascal/Volta, e.g. V100); PyTorch 2.11+cu128 builds dropped
+# sm_70. Combine with other extras: uv sync --extra cu126 --extra server
+cu126 = [
+    "torch>=2.9.0",
+    "torchvision>=0.23.0",
+]
+
+# PyTorch wheels built for CUDA 12.8 — for Turing (sm_75) and newer GPUs.
+cu128 = [
+    "torch>=2.9.0",
+    "torchvision>=0.23.0",
+]
+
 [project.scripts]
 latex-ocr = "latex_ocr.cli:main"
 latex-ocr-server = "latex_ocr.serve:main"
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [tool.uv]
-# Reuse the CUDA 12.8 wheels from the PyTorch index; fall back to PyPI otherwise.
+# Universal lockfile: default `uv sync` resolves plain PyPI torch (works on CPU and
+# recent CUDA GPUs); the cu126/cu128 extras repoint torch/torchvision at the
+# matching PyTorch index instead.
 index-strategy = "first-index"
+
+# The CUDA-flavor extras use mutually exclusive index pins, so they cannot be
+# requested together in one sync.
+conflicts = [[{ extra = "cu126" }, { extra = "cu128" }]]
 
 [[tool.uv.index]]
 name = "pytorch-cu128"
 url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
-[tool.uv.sources]
-torch = [{ index = "pytorch-cu128" }]
-torchvision = [{ index = "pytorch-cu128" }]
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
 
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu128", extra = "cu128" },
+    { index = "pytorch-cu126", extra = "cu126" },
+]
+torchvision = [
+    { index = "pytorch-cu128", extra = "cu128" },
+    { index = "pytorch-cu126", extra = "cu126" },
+]
 [tool.ruff]
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 ignore = ["E501"]
+
+[dependency-groups]
+dev = [
+    "httpx[socks]>=0.28.1",
+]

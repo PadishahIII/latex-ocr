@@ -51,11 +51,11 @@ The new dataset addresses this in two ways:
   `\mathcal`, `\mathit`, `\mathrm`, `\mathsf`, `\mathtt`, `\mathfrak`, `\mathscr`) are
   injected with semantic heuristics — number sets tend to become `\mathbb`, vectors
   `\mathbf`, differentials `\mathrm` — with a per-formula consistency rule (the same
-  variable keeps the same style). Training on this split makes the model *read* the
+  variable keeps the same style). Training on this split makes the model _read_ the
   visual style of a glyph and emit the corresponding style macro, instead of ignoring it.
 
 See the dataset card
-([README_synth](https://huggingface.co/datasets/PadishahIIIXXX/latex-ocr-dataset/blob/main/README_synth.md))
+([README_synth](https://huggingface.co/datasets/PadishahIIIXXX/latex-ocr-dataset/))
 for the full generation pipeline and statistics.
 
 ### 2. Laptop-CPU-friendly use
@@ -109,13 +109,10 @@ The release model ([release 1.0.0](https://huggingface.co/PadishahIIIXXX/latex-o
 
 Key points:
 
-- **Two text decoders, one trunk.** A *unimodal* stack (causal self-attention only)
-  embeds the token sequence into a text CLS for the contrastive loss; a *multimodal*
+- **Two text decoders, one trunk.** A _unimodal_ stack (causal self-attention only)
+  embeds the token sequence into a text CLS for the contrastive loss; a _multimodal_
   stack (self-attention + cross-attention into the pooled image queries) produces the
   captioning logits used at inference time.
-- **Fixed-size visual memory.** Attentional pooling compresses the variable-length Swin
-  token grid into 256 queries, so decoding cost is independent of image token count.
-- **Weight tying** between input embeddings and the output projection keeps the model small.
 - Training is two-stage: **pretrain** on the `plain` split, then **finetune** on the
   plain + styled mixture (stage A: frozen encoder, stage B: end-to-end).
 
@@ -128,38 +125,18 @@ Test sets (both are test splits of
 - **styled** split — 2,955 items
 
 Baselines are UniMER-base / -small / -tiny from
-[UniMERNet](https://github.com/opendatalab/unimernet). `Debug-*` rows are development
-iterations of this model; **Debug-8-2 is the release model (release 1.0.0)**.
+[UniMERNet](https://github.com/opendatalab/unimernet).
 
-| Benchmark | Model | Param | BLEU $\uparrow$ | Edit distance $\downarrow$ | Exact match ratio $\uparrow$ | CDM | Throughput (image/s) |
-|-|-|-|-|-|-|-|-|
-| Plain | UniMER-base | 325M | 0.891463 | 0.138271 | | | |
-| | UniMER-small | 202M | 0.885505 | 0.141475 | | | |
-| | UniMER-tiny | 107M | 0.869181 | 0.149117 | | | |
-| | Debug-1 | 46M | 0.7139 | 0.1773 | | | |
-| | Debug-2 | 46M | 0.7281 | 0.1395 | | | |
-| | Debug-3 | 46M | 0.7316 (0.7923 when only pretrain) | 0.1347 | | | |
-| | Debug-4 | 46M | 0.7829 | 0.0939 | | | |
-| | Debug-5 | 46M | 0.7458 | 0.1149 | | | |
-| | Debug-6 | 67M | 0.8627 | 0.0698 | | | |
-| | Debug-7 | 67M | 0.8636 | 0.0771 | | | |
-| | Debug-8 | 67M | **0.8668** | 0.0708 | 0.5057 | | |
-| | Debug-9 | 67M | 0.8588 | 0.0721 | 0.5134 | | |
-| | Debug-9-1 | | 0.8648 | 0.0718 | 0.5092 | | |
-| | **Debug-8-2** *(release-1.0.0)* | | **0.8737** | **0.0695** | **0.5220** | | |
-| | Debug-9-3 | | 0.8622 | 0.0801 | 0.4996 | | |
-| Styled | UniMER-base † | 325M | 0.757091 | 0.253583 | | | |
-| | UniMER-small † | 202M | 0.755511 | 0.255015 | | | |
-| | UniMER-tiny † | 107M | 0.741603 | 0.267083 | | | |
-| | Debug-1 | 46M | 0.8710 | 0.0737 | | | |
-| | Debug-2 | 46M | 0.8547 | 0.0727 | | | |
-| | Debug-3 | 46M | 0.8681 | 0.0739 | | | |
-| | Debug-4 | 46M | 0.8365 | 0.0949 | | | |
-| | Debug-5 | 46M | 0.8186 | 0.1084 | | | |
-| | Debug-7 | 67M | 0.9031 | 0.0571 | | | |
-| | Debug-8 | 67M | 0.7552 | 0.1754 | 0.1834 | | |
-| | **Debug-8-2** *(release-1.0.0)* | | **0.9049** | **0.0562** | **0.5316** | | |
-| | Debug-9-3 | | 0.8968 | 0.0623 | 0.5052 | | |
+| Benchmark | Model                           | Param | BLEU ↑     | Edit distance ↓ | Exact match ratio ↑ |
+| --------- | ------------------------------- | ----- | ---------- | --------------- | ------------------- |
+| Plain     | UniMER-base                     | 325M  | 0.891463   | 0.138271        | -                   |
+|           | UniMER-small                    | 202M  | 0.885505   | 0.141475        | -                   |
+|           | UniMER-tiny                     | 107M  | 0.869181   | 0.149117        | -                   |
+|           | **latex-ocr** _(release-1.0.0)_ |       | **0.8737** | **0.0695**      | **0.5220**          |
+| Styled    | UniMER-base †                   | 325M  | 0.757091   | 0.253583        |                     |
+|           | UniMER-small †                  | 202M  | 0.755511   | 0.255015        |                     |
+|           | UniMER-tiny †                   | 107M  | 0.741603   | 0.267083        |                     |
+|           | **latex-ocr** _(release-1.0.0)_ |       | **0.9049** | **0.0562**      | **0.5316**          |     |     |
 
 > **† Limitation of the comparison:** the UniMER baseline numbers on the **styled** test
 > set are **zero-shot** — UniMERNet was never trained on the new styled data, so the
@@ -178,7 +155,7 @@ baselines on styled formulas — thanks to the style-aware training data.
 Requires Python ≥ 3.11. With [uv](https://docs.astral.sh/uv/) (recommended):
 
 ```bash
-git clone https://github.com/PadishahIII/latex-ocr.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/PadishahIII/latex-ocr.git # LFS files are only for dataset processing
 cd latex-ocr
 uv sync --extra server      # + FastAPI inference server
 ```
@@ -188,10 +165,21 @@ or plain pip:
 ```bash
 pip install -e ".[server]"
 ```
+By default, `torch`/`torchvision` come from PyPI, which works for CPU inference
+and most CUDA GPUs. To select a specific CUDA build, add the matching extra:
 
-> Torch is installed from the cu128 index by default (see `pyproject.toml`).
-> For CPU-only environments, adjust `[tool.uv.sources]` accordingly.
+| GPU | Install |
+| --- | --- |
+| CPU or recent CUDA GPUs | `uv sync --extra server` (default) |
+| Volta/Pascal (compute capability ≤ 7.0, e.g. V100) | `uv sync --extra server --extra cu126` |
+| Turing (sm_75) or newer | `uv sync --extra server --extra cu128` |
 
+> The `cu126`/`cu128` extras repoint torch/torchvision at the matching
+> `download.pytorch.org` index and are mutually exclusive — uv rejects syncing
+> both. PyTorch 2.11+ cu128 builds dropped Volta (sm_70) support, which is why
+> older GPUs need the cu126 flavor. The committed `uv.lock` covers all three
+> variants. Plain pip always gets the PyPI build; for other CUDA flavors follow
+> [pytorch.org](https://pytorch.org/get-started/locally/).
 ### Get the release model
 
 Download the checkpoint from Hugging Face:
@@ -207,7 +195,7 @@ from PIL import Image
 from latex_ocr.serve import LatexOCRPredictor
 
 predictor = LatexOCRPredictor(
-    model_path="models/checkpoints/<downloaded-checkpoint>.pth",
+    model_path="models/checkpoints/model.pth",
     device="cpu",     # runs fine on a laptop CPU
     beam_size=4,
 )
@@ -220,7 +208,7 @@ A browser UI — upload an image, see the LaTeX and its rendered preview:
 
 ```bash
 latex-ocr webui \
-  --model models/checkpoints/<downloaded-checkpoint>.pth \
+  --model models/checkpoints/model.pth \
   --device cpu --port 7860
 ```
 
@@ -240,7 +228,7 @@ latex-ocr api   --model <ckpt.pth> --device cpu   # FastAPI API server (port 800
 
 ```bash
 latex-ocr-server \
-  --model models/checkpoints/<downloaded-checkpoint>.pth \
+  --model models/checkpoints/model.pth \
   --device cpu --port 8000
 ```
 
@@ -271,9 +259,11 @@ Interactive docs: `http://localhost:8000/docs`.
 ![Pipeline demo: formula image in, LaTeX out](docs/images/demo-pipeline.png)
 
 <!-- TODO: screenshot of the FastAPI /docs interactive page -->
+
 ![FastAPI interactive docs](docs/images/demo-api-docs.png)
 
 <!-- TODO: side-by-side of a styled formula (\mathbb / \mathcal / \mathfrak) and the recognized output -->
+
 ![Styled-font recognition example](docs/images/demo-styled.png)
 
 ## Training
@@ -286,11 +276,11 @@ Training is a standalone topic: everything lives in `latex_ocr/trainers/` +
 All data is open and hosted on Hugging Face; it downloads and caches automatically
 (respecting `HF_HOME`) on first use:
 
-| Dataset | HF repo | Used for |
-|---|---|---|
-| **latex-ocr-dataset** | `PadishahIIIXXX/latex-ocr-dataset` | main training data (`plain` + `styled` configs) |
-| UniMER-1M / UniMER-Test | `wanderkid/UniMER_Dataset` | upstream formula corpus |
-| LaTeX-OCR | `lukbl/LaTeX-OCR-dataset` | upstream formula corpus |
+| Dataset                 | HF repo                            | Used for                                        |
+| ----------------------- | ---------------------------------- | ----------------------------------------------- |
+| **latex-ocr-dataset**   | `PadishahIIIXXX/latex-ocr-dataset` | main training data (`plain` + `styled` configs) |
+| UniMER-1M / UniMER-Test | `wanderkid/UniMER_Dataset`         | upstream formula corpus                         |
+| LaTeX-OCR               | `lukbl/LaTeX-OCR-dataset`          | upstream formula corpus                         |
 
 Optional prefetch:
 
@@ -313,14 +303,14 @@ The recipe reads its settings from the environment; copy the template and fill i
 cp .env.example .env
 ```
 
-| Variable | Purpose |
-|---|---|
-| `MLFLOW_ENABLE` | master switch (`false` trains with no MLflow connectivity) |
-| `MLFLOW_HOST` / `MLFLOW_PORT` | MLflow tracking server address |
-| `MLFLOW_TRACKING_USERNAME` / `MLFLOW_TRACKING_PASSWORD` | basic auth for the tracking server |
-| `MLFLOW_ARTIFACT_TIMEOUT` | artifact upload/download timeout (seconds) |
-| `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | artifact-store credentials |
-| `MINIO_PORT`, `MINIO_SECURE`, `MINIO_BUCKET` | artifact-store endpoint / TLS / bucket (`mlflow-artifacts`) |
+| Variable                                                | Purpose                                                     |
+| ------------------------------------------------------- | ----------------------------------------------------------- |
+| `MLFLOW_ENABLE`                                         | master switch (`false` trains with no MLflow connectivity)  |
+| `MLFLOW_HOST` / `MLFLOW_PORT`                           | MLflow tracking server address                              |
+| `MLFLOW_TRACKING_USERNAME` / `MLFLOW_TRACKING_PASSWORD` | basic auth for the tracking server                          |
+| `MLFLOW_ARTIFACT_TIMEOUT`                               | artifact upload/download timeout (seconds)                  |
+| `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY`                 | artifact-store credentials                                  |
+| `MINIO_PORT`, `MINIO_SECURE`, `MINIO_BUCKET`            | artifact-store endpoint / TLS / bucket (`mlflow-artifacts`) |
 
 What gets recorded per run: training/validation metrics (loss, LR, BLEU, edit distance,
 gradient norms), the full trainer config as params, and checkpointed models as MLflow
@@ -388,10 +378,10 @@ uv tool install pre-commit   # or: pip install pre-commit
 pre-commit install
 ```
 
-| Hook | What it does |
-|---|---|
-| `gitleaks` (v8.30.1) | scans staged changes for leaked secrets/credentials |
-| `no-large-files` | rejects files > 10 MB (weights/datasets belong on HF Hub, not git) |
+| Hook                 | What it does                                                       |
+| -------------------- | ------------------------------------------------------------------ |
+| `gitleaks` (v8.30.1) | scans staged changes for leaked secrets/credentials                |
+| `no-large-files`     | rejects files > 10 MB (weights/datasets belong on HF Hub, not git) |
 
 Run on the whole repo: `pre-commit run --all-files`. The large-file threshold
 is `10` MB, configurable via the first arg in `.pre-commit-config.yaml`; the

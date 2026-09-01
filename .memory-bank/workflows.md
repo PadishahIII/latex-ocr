@@ -44,3 +44,17 @@
   - Pre-purge backups: `/tmp/latex-ocr-pre-purge.bundle` (git bundle) + `/tmp/latex-ocr-lfs-backup` (.git/lfs copy).
 - Evidence: curl speed tests via 7890/7891/TUN; `git count-objects -vH` (packs: 0, ~47 MiB loose); `git cat-file -s` blob sizes per commit; 8-connection upload test.
 - Reuse: Before the first push of any repo migrated to LFS, check `git rev-list --objects --all` for raw big blobs; for clash pushes use HTTP port 7890 + HTTP/1.1 + parallel LFS. If push is still slow, the clash node's upstream is the ceiling — switch nodes, LFS resumes.
+
+## 2026-09-01 — Gitleaks full-history scan gotcha
+
+- Context: `gitleaks detect --log-opts="... B^..H"` failed with `fatal: ambiguous argument` even though both SHAs existed — because `B` (b1978ec) is the repo's root commit, and `root^` doesn't resolve. Gitleaks treats non-empty git stderr as fatal ("scanned ~0 bytes, no leaks found in partial scan") — a silent false-pass.
+- Memory:
+  ```bash
+  # Include the root commit: pass head's history directly
+  gitleaks detect --redact -v --exit-code=2 \
+    --report-format=sarif --report-path=results.sarif \
+    --log-opts="--no-merges --first-parent <head-sha>"
+  # Equivalent in-range alternative: git log B H   (two revs, no ^)
+  ```
+- Evidence: `git rev-list --parents -n1 b1978ec…` → no parent; corrected scan found 2 leaks (generic-api-key) in `recipe/utils/minio_util.py:226,228` (MINIO_ACCESS_KEY/MINIO_SECRET_KEY hardcoded defaults via `os.getenv(..., default)`).
+- Reuse: When base commit = root commit, drop the `^..` form. Real secrets exist in minio_util.py defaults — rotate before any push.

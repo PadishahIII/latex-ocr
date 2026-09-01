@@ -1,12 +1,22 @@
-# Decisions
+## 2026-09-01 — Missing [build-system] made project "virtual": no latex-ocr binaries after uv sync
 
-## 2026-09-01 — Server stack: Gradio 5.x web UI + facade CLI
+- Context: User followed README install (`uv sync --extra server`) but `.venv/bin/latex-ocr` / `latex-ocr-server` did not exist.
+- Memory: `pyproject.toml` lacked a `[build-system]` table, so uv treated the project as virtual (`source = { virtual = "." }` in `uv.lock`) and only installed dependencies — `[project.scripts]` entry points were never installed. Fix: add `requires = ["hatchling"]` / `build-backend = "hatchling.build"`. Follow-on: torchtune 0.6.1 imports `torchao.dtypes.nf4tensor` unconditionally but its metadata doesn't require torchao; torchao ≥0.15 moved that module (ao PR #4256), so pin `torchao<0.15` (0.14.1) alongside torchtune (archived, 0.6.1 final).
+- Evidence: `pyproject.toml` (now has [build-system] + torchao pin), `uv.lock`, verified `.venv/bin/latex-ocr --help` exit 0 with api/webui commands.
+- Reuse: When `[project.scripts]` binaries are missing after `uv sync`, check for a missing `[build-system]` table first (uv makes the project virtual). If torchtune is touched, keep `torchao<0.15`.
+
+## 2026-09-01 — Per-GPU torch flavor via cu126/cu128 extras, universal lockfile
+
+- Context: User's local GPU is a V100 (sm_70) but repo users may have newer GPUs; asked how to branch local vs default config. Previously `pyproject.toml` hard-pinned `[tool.uv.sources]` torch→cu128 index for everyone.
+- Memory: Use uv's PyTorch pattern: torch/torchvision index pins are gated per-extra (`{ index = ..., extra = "cu128" }`), extras `cu126`/`cu128` declared with `conflicts = [[{extra="cu126"},{extra="cu128"}]]`. Default `uv sync` = plain PyPI torch; `--extra cu126` = PyTorch cu126 index (works on V100; PyTorch 2.11+cu128 builds dropped sm_70); `--extra cu128` = cu128 index (Turing+; index tops out at torch 2.11.0). One committed universal `uv.lock` covers all forks — no local files, no `uv.toml` (uv rejects `sources` in `uv.toml`), no `--no-sources` needed. Local machine convention: `uv sync --extra cu126 --extra server`.
+- Evidence: `pyproject.toml` [tool.uv] (conflicts, two [[tool.uv.index]], per-extra sources), `uv.lock` (torch 2.13.0 / 2.13.0+cu126 / 2.11.0+cu128 forks), verified syncs: local venv runs torch 2.13.0+cu126, `torch.cuda.is_available()` True, device cc (7,0); `uv sync --extra cu126 --extra cu128` correctly rejected by conflicts guard.
+- Reuse: To add a CUDA flavor (e.g. cu130): add `[[tool.uv.index]]` + per-extra source line + matching extra + conflicts entry, then `uv lock`. Never put machine-specific index pins in unconditioned `[tool.uv.sources]`.
+## 2026-09-01 — Server stack: Gradio 6.x web UI + facade CLI (supersedes earlier 5.x intent)
 
 - Context: Needed a browser frontend for image upload → LaTeX inference, plus one CLI to start either frontend or API server.
-- Memory: Gradio `>=5.9.1` (latest 5.x line; Gradio 6 exists but pinning major-bump-risk). `build_app()` in `latex_ocr/webui.py` returns a `gr.Blocks` (not an ASGI app); the facade CLI `latex_ocr` (`latex_ocr/cli.py`, click group) calls `demo.launch(...)` directly with `max_file_size=f"{n}mb"`. API server stays FastAPI (`latex-ocr-server` / `latex-ocr api`). `gr.mount_gradio_app(demo, path=...)` signature takes the app first and has no `share` param — avoid.
-- Evidence: `latex_ocr/cli.py`, `latex_ocr/webui.py`, `pyproject.toml` scripts/extras.
-- Reuse: When extending servers, add options to both `webui`/`api` commands via `_shared_model_options` in cli.py.
-
+- Memory: Gradio is pinned `>=6,<7`. The 5.x intent was never encoded and the lock resolved 6.26.0, where `gr.Latex` was REMOVED — rendering goes through `gr.Markdown` (KaTeX, default delimiters `$$...$$`), and `Textbox(show_copy_button=...)` became `Textbox(buttons=["copy"])`. `build_app()` returns a `gr.Blocks`; the facade CLI `latex_ocr` calls `demo.launch(...)` with `max_file_size="{n}mb"` (still valid in 6.x, verified). API server stays FastAPI (`latex-ocr-server` / `latex-ocr api`).
+- Evidence: `latex_ocr/webui.py` (gr.Markdown + buttons=["copy"]), `pyproject.toml` server extra, smoke test: build_app + launch + GET / → 200 on gradio 6.26.0.
+- Reuse: When extending servers, add options to both `webui`/`api` commands via `_shared_model_options` in cli.py. Gradio major bumps: diff component signatures before assuming 5.x APIs survive.
 ## 2026-09-01 — Dependency versions sourced from /root/Deep-Learning-Practices/pyproject.toml
 
 - Context: User asked to keep dep versions consistent with that reference project.

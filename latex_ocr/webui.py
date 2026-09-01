@@ -48,8 +48,7 @@ def build_app(
         if image is None:
             raise gr.Error("Please upload an image first.")
         latex = _get_predictor().predict(image)
-        return f"$${latex}$$", latex  # display-math for gr.Latex + raw source
-
+        return f"$${latex}$$", latex  # display-math for gr.Markdown (KaTeX)
     with gr.Blocks(title=APP_TITLE) as demo:
         gr.Markdown(f"# {APP_TITLE}\n{APP_DESCRIPTION}")
 
@@ -60,8 +59,8 @@ def build_app(
                     submit_btn = gr.Button("Recognize", variant="primary")
                     clear_btn = gr.ClearButton([image_in], value="Clear")
             with gr.Column():
-                rendered_out = gr.Latex(label="Rendered")
-                latex_out = gr.Textbox(label="LaTeX source", lines=3, show_copy_button=True)
+                rendered_out = gr.Markdown(label="Rendered")
+                latex_out = gr.Textbox(label="LaTeX source", lines=3, buttons=["copy"])
 
         submit_btn.click(
             fn=run_ocr,
