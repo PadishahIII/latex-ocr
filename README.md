@@ -253,11 +253,12 @@ curl http://localhost:8000/health
 Interactive docs: `http://localhost:8000/docs`.
 
 ## Showcase
-<img width="1345" height="329" alt="image" src="https://github.com/user-attachments/assets/086344d5-45d3-4a71-8368-583d941ece64" />
+<img width="2910" height="514" alt="Snipaste_2026-09-01_19-20-45" src="https://github.com/user-attachments/assets/229bd6c1-57fa-4788-ab53-26adb4d94fc9" />
 
-<img width="1357" height="302" alt="image" src="https://github.com/user-attachments/assets/d2fd4240-3c2c-4a0d-b936-ff67aad4b98c" />
+<img width="2886" height="422" alt="Snipaste_2026-09-01_19-21-23" src="https://github.com/user-attachments/assets/ba965804-debb-4282-80b3-dc400cb7d633" />
 
-<img width="1354" height="365" alt="image" src="https://github.com/user-attachments/assets/c4707b15-fef9-4245-b6dc-ae9b7d003503" />
+<img width="2884" height="538" alt="Snipaste_2026-09-01_19-21-44" src="https://github.com/user-attachments/assets/0223a753-9483-4f62-bee3-1b54f43a6cd7" />
+
 
 <img width="1873" height="373" alt="image" src="https://github.com/user-attachments/assets/afbd7156-c219-418f-b7ad-4a4626895676" />
 
