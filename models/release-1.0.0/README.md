@@ -1,3 +1,57 @@
+---
+license: mit
+pipeline_tag: image-to-text
+base_model: timm/swin_small_patch4_window7_224.ms_in22k
+datasets:
+  - PadishahIIIXXX/latex-ocr-dataset
+tags:
+  - latex
+  - ocr
+  - formula-recognition
+  - coca
+  - swin
+  - math
+model-index:
+  - name: latex-ocr release-1.0.0
+    results:
+      - task:
+          type: image-to-text
+          name: LaTeX formula OCR
+        dataset:
+          name: PadishahIIIXXX/latex-ocr-dataset (plain test split)
+          type: PadishahIIIXXX/latex-ocr-dataset
+          config: plain
+          split: test
+        metrics:
+          - type: bleu
+            name: BLEU
+            value: 0.8737
+          - type: exact_match
+            name: Exact match ratio
+            value: 0.522
+          - type: edit_distance
+            name: Edit distance (lower is better)
+            value: 0.0695
+      - task:
+          type: image-to-text
+          name: LaTeX formula OCR (styled)
+        dataset:
+          name: PadishahIIIXXX/latex-ocr-dataset (styled test split)
+          type: PadishahIIIXXX/latex-ocr-dataset
+          config: styled
+          split: test
+        metrics:
+          - type: bleu
+            name: BLEU
+            value: 0.9049
+          - type: exact_match
+            name: Exact match ratio
+            value: 0.5316
+          - type: edit_distance
+            name: Edit distance (lower is better)
+            value: 0.0562
+---
+
 <div align="center">
 
 # latex-ocr · release 1.0.0
@@ -10,16 +64,16 @@
 
 </div>
 
-This is the **release-1.0.0** model card for `latex-ocr` (development codename
-**Debug-8-2**). Weights live in the source repo at
-`models/1c0eb12acf40406d91a642624354fe96-latex-ocr-coca-finetune_epoch00032_final/`
-(full-model `.pth`, MLflow/pytorch-logged format).
+This is the **release-1.0.0** model card for [`latex-ocr`](https://github.com/PadishahIII/latex-ocr).
+The full weights ship in this repo as `model.pth` (torch full-model checkpoint,
+MLflow/pytorch-logged format).
 
 - **Architecture:** CoCa (Swin encoder + unimodal/multimodal dual text decoder)
 - **Parameters:** 67M
 - **LaTeX vocabulary:** 1,122 tokens (packaged SentencePiece tokenizer)
 - **Input:** rendered formula image, resized to 192 × 672 RGB
-- **Output:** LaTeX source string, autoregressive beam search (default beam 4)
+- **Output:** LaTeX source string, autoregressive beam search (default beam 4,
+  generation limit 354 tokens)
 - **Hardware:** runs fine on a **laptop CPU** — no GPU required
 
 ## Model structure
@@ -69,6 +123,10 @@ one pooled visual memory:
   queries, so decode cost is independent of image size.
 - **Weight tying** between input embeddings and the output projection keeps the model compact.
 
+The Swin-Small encoder is initialized from
+[`timm/swin_small_patch4_window7_224.ms_in22k`](https://huggingface.co/timm/swin_small_patch4_window7_224.ms_in22k)
+(ImageNet-22k pretrained weights); all other components are trained from scratch.
+
 ## Training
 
 Two-stage training on
@@ -113,6 +171,12 @@ Full benchmark table with all development iterations:
 
 ## Usage
 
+Download the weights:
+
+```bash
+hf download PadishahIIIXXX/latex-ocr --local-dir models/checkpoints/
+```
+
 ### Python
 
 ```python
@@ -120,7 +184,7 @@ from PIL import Image
 from latex_ocr.serve import LatexOCRPredictor
 
 predictor = LatexOCRPredictor(
-    model_path="<downloaded-checkpoint>.pth",
+    model_path="models/checkpoints/model.pth",
     device="cpu",     # laptop CPU is enough
     beam_size=4,
 )
@@ -132,7 +196,7 @@ print(predictor.predict(Image.open("formula.png")))
 ```bash
 pip install -e "git+https://github.com/PadishahIII/latex-ocr.git#egg=latex-ocr[server]"
 
-latex-ocr-server --model <downloaded-checkpoint>.pth --device cpu --port 8000
+latex-ocr-server --model models/checkpoints/model.pth --device cpu --port 8000
 
 curl -s -F file=@formula.png http://localhost:8000/predict
 # -> {"latex": "E = mc^2"}
@@ -158,3 +222,25 @@ MIT for the model weights. Training data derives from
 [LaTeX-OCR](https://huggingface.co/datasets/lukbl/LaTeX-OCR-dataset) — see the
 [dataset card](https://huggingface.co/datasets/PadishahIIIXXX/latex-ocr-dataset) for
 dataset licenses (CC-BY-4.0).
+
+## Citation
+
+If you use this model, please cite the repository and the underlying work:
+
+```bibtex
+@software{latex_ocr_2026,
+  author  = {PadishahIII},
+  title   = {latex-ocr: a 67M-parameter CoCa model for LaTeX formula OCR},
+  year    = {2026},
+  url     = {https://github.com/PadishahIII/latex-ocr}
+}
+
+@article{yu2022coca,
+  title   = {CoCa: Contrastive Captioners are Image-Text Foundation Models},
+  author  = {Yu, Jiahui and Wang, Zirui and Vasudevan, Vijay and Yeung, Legg and
+             Seyedhosseini, Mojtaba and Wu, Yonghui},
+  journal = {Transactions on Machine Learning Research},
+  year    = {2022},
+  url     = {https://arxiv.org/abs/2205.01917}
+}
+```
