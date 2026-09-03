@@ -132,11 +132,11 @@ Baselines are UniMER-base / -small / -tiny from
 | Plain     | UniMER-base                     | 325M  | 0.891463   | 0.138271        | -                   |
 |           | UniMER-small                    | 202M  | 0.885505   | 0.141475        | -                   |
 |           | UniMER-tiny                     | 107M  | 0.869181   | 0.149117        | -                   |
-|           | **latex-ocr** _(release-1.0.0)_ |       | **0.8737** | **0.0695**      | **0.5220**          |
+|           | **latex-ocr** _(release-1.0.0)_ | 67M   | **0.8737** | **0.0695**      | **0.5220**          |
 | Styled    | UniMER-base †                   | 325M  | 0.757091   | 0.253583        |                     |
 |           | UniMER-small †                  | 202M  | 0.755511   | 0.255015        |                     |
 |           | UniMER-tiny †                   | 107M  | 0.741603   | 0.267083        |                     |
-|           | **latex-ocr** _(release-1.0.0)_ |       | **0.9049** | **0.0562**      | **0.5316**          |     |     |
+|           | **latex-ocr** _(release-1.0.0)_ | 67M   | **0.9049** | **0.0562**      | **0.5316**          |     |     |
 
 > **† Limitation of the comparison:** the UniMER baseline numbers on the **styled** test
 > set are **zero-shot** — UniMERNet was never trained on the new styled data, so the
